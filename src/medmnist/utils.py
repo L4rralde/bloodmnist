@@ -1,8 +1,8 @@
 import os
 from PIL import Image
 from tqdm import trange
-import skimage
-from skimage.util import montage as skimage_montage
+#import skimage
+#from skimage.util import montage as skimage_montage
 
 
 SPLIT_DICT = {
@@ -20,7 +20,7 @@ def save2d(imgs, labels, img_folder,
                    load_fn=lambda arr: Image.fromarray(arr),
                    save_fn=lambda img, path: img.save(path))
 
-
+"""
 def montage2d(imgs, n_channels, sel):
     sel_img = imgs[sel]
 
@@ -33,7 +33,7 @@ def montage2d(imgs, n_channels, sel):
     montage_img = Image.fromarray(montage_arr)
 
     return montage_img
-
+"""
 
 def save3d(imgs, labels, img_folder,
            split, postfix, csv_path):
