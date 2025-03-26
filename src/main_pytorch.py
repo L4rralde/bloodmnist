@@ -21,7 +21,7 @@ if __name__ == '__main__':
     DATASETS_PATH = f"{GIT_ROOT}/datasets/"
 
     my_transforms = transforms.Compose([
-        transforms.Resize((64, 64)),
+        transforms.Resize((224, 224)),
         transforms.ToTensor(),
     ])
 
