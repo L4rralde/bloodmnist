@@ -21,6 +21,7 @@ if __name__ == '__main__':
     tfds_path = f"{GIT_ROOT}/datasets/tfds"
     train_path = f"{tfds_path}/train"
 
+    print(f"Saving train set at {train_path}")
     labels_cnt = {}
     for image, label in train_data:
         label = label[0]
@@ -42,6 +43,7 @@ if __name__ == '__main__':
     )
 
     val_path = f"{tfds_path}/validation"
+    print(f"Saving validation set at {train_path}")
     labels_cnt = {}
     for image, label in valid_data:
         label = label[0]
