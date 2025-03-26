@@ -1,3 +1,5 @@
+import os
+
 import torch
 from torch import nn
 import torch.optim as optim
@@ -14,6 +16,8 @@ def one_hot(y):
     return onehot_y
 
 if __name__ == '__main__':
+    if not os.path.exists(f"{GIT_ROOT}/models"):
+        os.makedirs(f"{GIT_ROOT}/models")
     DATASETS_PATH = f"{GIT_ROOT}/datasets/"
 
     my_transforms = transforms.Compose([
@@ -25,7 +29,7 @@ if __name__ == '__main__':
 
     train_data = BloodMNIST(
         "train",
-        size=64,
+        size=224,
         root=DATASETS_PATH,
         as_rgb=True,
         transform=my_transforms,
@@ -34,7 +38,7 @@ if __name__ == '__main__':
 
     val_data = BloodMNIST(
         "val",
-        size=64,
+        size=224,
         root=DATASETS_PATH,
         as_rgb=True,
         transform=my_transforms,
@@ -43,7 +47,7 @@ if __name__ == '__main__':
 
     test_data = BloodMNIST(
         "test",
-        size=64,
+        size=224,
         root=DATASETS_PATH,
         as_rgb=True,
         transform=my_transforms,
@@ -59,15 +63,16 @@ if __name__ == '__main__':
         nn.Linear(4096, 256),
         nn.ReLU(),
         nn.Linear(256, 8),
-        nn.Softmax(dim=1)
     )
+    for param in model.classifier.parameters():
+        param.requires_grad = True
 
     if torch.cuda.is_available():
         device = "cuda"
     else:
         device = "cpu"
 
-    batch_size = 16
+    batch_size = 64
     train_data_loader = DataLoader(train_data, batch_size = batch_size, shuffle=True)
     val_data_loader = DataLoader(val_data, batch_size = batch_size)
     test_data_loader = DataLoader(test_data, batch_size = batch_size)
@@ -100,6 +105,7 @@ if __name__ == '__main__':
             x = x.to(device)
             y = y.to(device)
             y_hat = model(x) #Prediction y_hat = model.forward(x)
+            #print(y, y_hat)
             loss = loss_fn(y_hat, y)
             loss.backward() #computes dloss/dx for every parameter 
                             #x which has requires_grad=True
@@ -117,10 +123,9 @@ if __name__ == '__main__':
                 x, y = batch
                 x = x.to(device)
                 y = y.to(device)
-                y = torch.nn.functional.one_hot(y)
                 y_hat = model(x)
                 val_loss += loss_fn(y_hat, y).item()
-                correct += (y_hat.argmax(1) == y).type(torch.float).sum().item()
+                correct += (y_hat.argmax(1) == y.argmax(1)).type(torch.float).sum().item()
             val_loss /= len(val_data_loader)
             correct /= len(val_data_loader.dataset)
             print(f"{epoch+1}/{epochs}. Accuracy:{correct}, Train loss:{train_loss}, Val loss:{val_loss}")

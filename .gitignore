@@ -136,3 +136,5 @@ dmypy.json
 *.npz
 
 datasets
+models/
+*.pth
