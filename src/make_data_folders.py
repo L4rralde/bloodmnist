@@ -7,6 +7,9 @@ from utils import GIT_ROOT
 if __name__ == '__main__':
     DATASETS_PATH = f"{GIT_ROOT}/datasets/"
 
+    if not os.path.exists(DATASETS_PATH):
+        os.makedirs(DATASETS_PATH)
+
     train_data = BloodMNIST(
         "train",
         download=True,
