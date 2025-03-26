@@ -16,9 +16,7 @@ def one_hot(y):
     return onehot_y
 
 
-if __name__ == '__main__':
-    if not os.path.exists(f"{GIT_ROOT}/models"):
-        os.makedirs(f"{GIT_ROOT}/models")
+def train(model):
     DATASETS_PATH = f"{GIT_ROOT}/datasets/"
 
     my_transforms = transforms.Compose([
@@ -55,25 +53,6 @@ if __name__ == '__main__':
         target_transform=target_transforms
     )
 
-    model = models.vgg16(weights='DEFAULT')
-    for name, param in model.named_parameters():
-        if not "classifier" in name:
-            param.requires_grad = False
-
-    model.classifier = nn.Sequential(
-        nn.Linear(25088, 4096),
-        nn.ReLU(),
-        nn.Dropout(p=0.3),
-        nn.Linear(4096, 256),
-        nn.ReLU(),
-        nn.Dropout(p=0.3),
-        nn.Linear(256, 8),
-    )
-    for param in model.classifier.parameters():
-        param.requires_grad = True
-
-    print(model)
-
     if torch.cuda.is_available():
         device = "cuda"
     else:
@@ -91,7 +70,7 @@ if __name__ == '__main__':
     val_losses = []
     best_val_loss = float('inf')
 
-    epochs = 50
+    epochs = 10
     for epoch in range(epochs):
         train_loss = 0.0
         model.train()# Sets the model in training mode.
@@ -143,3 +122,33 @@ if __name__ == '__main__':
                 print(f"Saving model at: {model_path}")
                 torch.save(model.state_dict(), model_path)
     print(val_losses)
+
+
+def get_default_model():
+    model = models.vgg16(weights='DEFAULT')
+    model.classifier = nn.Sequential(
+        nn.Linear(25088, 4096),
+        nn.ReLU(),
+        nn.Dropout(p=0.3),
+        nn.Linear(4096, 256),
+        nn.ReLU(),
+        nn.Dropout(p=0.3),
+        nn.Linear(256, 8),
+    )
+    return model
+
+if __name__ == '__main__':
+    if not os.path.exists(f"{GIT_ROOT}/models"):
+        os.makedirs(f"{GIT_ROOT}/models")
+
+    model = get_default_model()
+
+    for name, param in model.named_parameters():
+        if not "classifier" in name:
+            param.requires_grad = False
+    for param in model.classifier.parameters():
+        param.requires_grad = True
+
+    print(model)
+
+    train(model)
