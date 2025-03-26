@@ -15,6 +15,7 @@ def one_hot(y):
     onehot_y.scatter_(0, torch.tensor(y), value=1)
     return onehot_y
 
+
 if __name__ == '__main__':
     if not os.path.exists(f"{GIT_ROOT}/models"):
         os.makedirs(f"{GIT_ROOT}/models")
@@ -59,13 +60,19 @@ if __name__ == '__main__':
         if not "classifier" in name:
             param.requires_grad = False
 
-    model.classifier[6] = nn.Sequential(
+    model.classifier = nn.Sequential(
+        nn.Linear(25088, 4096),
+        nn.ReLU(),
+        nn.Dropout(p=0.3),
         nn.Linear(4096, 256),
         nn.ReLU(),
+        nn.Dropout(p=0.3),
         nn.Linear(256, 8),
     )
     for param in model.classifier.parameters():
         param.requires_grad = True
+
+    print(model)
 
     if torch.cuda.is_available():
         device = "cuda"
