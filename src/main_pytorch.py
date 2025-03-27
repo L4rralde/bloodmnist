@@ -44,15 +44,6 @@ def train(model):
         target_transform=target_transforms
     )
 
-    test_data = BloodMNIST(
-        "test",
-        size=224,
-        root=DATASETS_PATH,
-        as_rgb=True,
-        transform=my_transforms,
-        target_transform=target_transforms
-    )
-
     if torch.cuda.is_available():
         device = "cuda"
     else:
@@ -61,7 +52,6 @@ def train(model):
     batch_size = 64
     train_data_loader = DataLoader(train_data, batch_size = batch_size, shuffle=True)
     val_data_loader = DataLoader(val_data, batch_size = batch_size)
-    test_data_loader = DataLoader(test_data, batch_size = batch_size)
 
     model = model.to(device)
     loss_fn = nn.CrossEntropyLoss()
