@@ -63,7 +63,18 @@ if __name__ == '__main__':
         root=DATASETS_PATH,
         as_rgb=True
     )
-    test_data.save(
-        f"{tfds_path}/test",
-        write_csv=False
-    )
+
+    test_path = f"{tfds_path}/test"
+    print(f"Saving test set at {test_path}")
+    labels_cnt = {}
+    for image, label in test_data:
+        label = label[0]
+        if not label in labels_cnt:
+            labels_cnt[label] = 0
+        else:
+            labels_cnt[label] += 1
+        label_path = f"{test_path}/{label}"
+        if not os.path.exists(label_path):
+            os.makedirs(label_path)
+        image.save(f"{label_path}/{label}_{labels_cnt[label]}.png", "PNG")
+    
