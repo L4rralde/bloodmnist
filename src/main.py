@@ -1,19 +1,18 @@
 import os
 
-from keras import models
-from keras import layers
+import tensorflow as tf
+from keras import models, layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from keras.applications import VGG16
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 
-from utils import GIT_ROOT
+from utils import MODELS_PATH, DATASETS_PATH
 
 
 if __name__ == '__main__':
-    if not os.path.exists(f"{GIT_ROOT}/models"):
-        os.makedirs(f"{GIT_ROOT}/models")
+    os.makedirs(MODELS_PATH, exist_ok=True)
     
     batch_size = 64
-    DATASETS_PATH = f"{GIT_ROOT}/datasets/"
 
     datagen = ImageDataGenerator()
     train_generator = datagen.flow_from_directory(
@@ -40,7 +39,7 @@ if __name__ == '__main__':
         color_mode="rgb",
         batch_size=batch_size,
         class_mode="categorical",
-        shuffle=True,
+        shuffle=False,
     )
 
     conv_base = VGG16(
@@ -51,12 +50,11 @@ if __name__ == '__main__':
     conv_base.trainable = False
 
     model = models.Sequential()
+
     model.add(conv_base)
-    model.add(layers.Flatten())
-    model.add(layers.Dense(4096, activation='relu'))
-    model.add(layers.Dropout(0.3))
+    model.add(layers.GlobalAveragePooling2D())
     model.add(layers.Dense(256, activation='relu'))
-    model.add(layers.Dropout(0.3))
+    model.add(layers.Dropout(0.2))
     model.add(layers.Dense(8, activation='softmax'))
 
     model.compile(
@@ -67,6 +65,14 @@ if __name__ == '__main__':
 
     model.summary()
 
+    callbacks = [
+        EarlyStopping(patience=3),
+        ModelCheckpoint(
+            f"{MODELS_PATH}/best_model.keras", 
+            save_best_only=True
+        )
+    ]
+
     history = model.fit(
         train_generator,
         epochs          = 10,
@@ -74,8 +80,5 @@ if __name__ == '__main__':
         validation_data = val_generator,
         validation_steps= 10,
         verbose         = 2,
+        callbacks       = callbacks,
     )
-
-    model_path = f"{GIT_ROOT}/models/my_model.keras"
-    print(f"Saving model at {model_path}")
-    model.save(model_path)
