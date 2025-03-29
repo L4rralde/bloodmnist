@@ -127,6 +127,44 @@ def get_default_model():
     )
     return model
 
+def eval(model):
+    DATASETS_PATH = f"{GIT_ROOT}/datasets/"
+
+    my_transforms = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+    ])
+
+    target_transforms = transforms.Lambda(one_hot)
+
+    test_data = BloodMNIST(
+        "test",
+        size=224,
+        root=DATASETS_PATH,
+        as_rgb=True,
+        transform=my_transforms,
+        target_transform=target_transforms
+    )
+
+    if torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
+
+    test_data_loader = DataLoader(test_data, batch_size = 64)
+    correct = 0
+    with torch.no_grad():
+        for batch in test_data_loader:
+            x, y = batch
+            x = x.to(device)
+            y = y.to(device)
+            y_hat = model(x)
+            correct += (y_hat.argmax(1) == y.argmax(1)).type(torch.float).sum().item()
+        correct /= len(val_data_loader.dataset)
+
+    return correct
+
+
 if __name__ == '__main__':
     if not os.path.exists(f"{GIT_ROOT}/models"):
         os.makedirs(f"{GIT_ROOT}/models")
